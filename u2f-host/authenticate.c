@@ -24,6 +24,8 @@
 #include "b64/cdecode.h"
 #include "sha256.h"
 
+static int cancel = 0;
+
 static int
 prepare_response2 (const char *encstr, const char *bdstr, const char *input,
 		   char **response, size_t * response_len)
@@ -73,7 +75,7 @@ prepare_response2 (const char *encstr, const char *bdstr, const char *input,
 	  *response_len = strlen (reply) + 1;
 	  goto done;
 	}
-      strcpy (*response, reply);
+      strncpy (*response, reply, *response_len);
     }
   *response_len = strlen (reply);
   if (*response == NULL)
@@ -171,6 +173,10 @@ _u2fh_authenticate (u2fh_devs * devs,
   do
     {
       struct u2fdevice *dev;
+      if (iterations++ > 15 || cancel)
+	{
+	  return U2FH_TIMEOUT_ERROR;
+	}
       for (dev = devs->first; dev != NULL; dev = dev->next)
 	{
 	  unsigned char tmp_buf[MAXDATASIZE];
@@ -200,14 +206,7 @@ _u2fh_authenticate (u2fh_devs * devs,
 	    {
 	      dev->skipped = 1;
 	    }
-	  else
-	    {
-	      memcpy (buf, tmp_buf, len);
-	    }
-	}
-      if (iterations++ > 15)
-	{
-	  return U2FH_TIMEOUT_ERROR;
+	  memcpy (buf, tmp_buf, len);
 	}
       if (len == 2 && memcmp (buf, NOTSATISFIED, 2) == 0)
 	{
@@ -276,4 +275,14 @@ u2fh_authenticate (u2fh_devs * devs,
   size_t response_len = 0;
   return _u2fh_authenticate (devs, challenge, origin, response, &response_len,
 			     flags);
+}
+
+
+void u2fh_cancel(){
+    cancel = 1 ;
+}
+
+
+void u2fh_reset_challenge(){
+    cancel = 0 ;
 }

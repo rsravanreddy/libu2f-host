@@ -74,6 +74,9 @@ extern "C"
 					      size_t * len);
 
   extern int u2fh_is_alive (u2fh_devs * devs, unsigned index);
+  extern void u2fh_cancel();
+
+  extern void u2fh_reset_challenge();
 
 #ifdef __cplusplus
 }
