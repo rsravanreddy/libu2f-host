@@ -23,6 +23,8 @@
 #include "b64/cencode.h"
 #include "sha256.h"
 
+static int register_cancel = 0;
+
 static int
 prepare_response2 (const char *respstr, const char *bdstr, char **response,
 		   size_t * response_len)
@@ -58,7 +60,7 @@ prepare_response2 (const char *respstr, const char *bdstr, char **response,
 	  *response_len = strlen (reply) + 1;
 	  goto done;
 	}
-      strcpy (*response, reply);
+      strncpy (*response, reply, *response_len);
     }
   *response_len = strlen (reply);
   if (*response == NULL)
@@ -143,7 +145,7 @@ _u2fh_register (u2fh_devs * devs,
   do
     {
       struct u2fdevice *dev;
-      if (iterations++ > 15)
+      if (iterations++ > 15 || register_cancel)
 	{
 	  return U2FH_TIMEOUT_ERROR;
 	}
@@ -225,4 +227,13 @@ u2fh_register (u2fh_devs * devs,
   *response = NULL;
   return _u2fh_register (devs, challenge, origin, response, &response_len,
 			 flags);
+}
+
+void u2fh_registration_cancel(){
+    register_cancel = 1 ;
+}
+
+
+void u2fh_registration_reset_challenge(){
+    register_cancel = 0 ;
 }
