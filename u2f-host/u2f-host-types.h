@@ -52,6 +52,7 @@ typedef enum
  */
 typedef enum
 {
+  U2FH_NO_DEBUG = 0,
   U2FH_DEBUG = 1
 } u2fh_initflags;
 
